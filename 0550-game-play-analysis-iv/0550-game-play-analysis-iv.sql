@@ -15,8 +15,14 @@
 -- JOIN Activity B ON A.player_id = B.player_id
 -- WHERE DATEDIFF(B.event_date,A.event_date) = 1
 
-SELECT ROUND(((CASE WHEN DATEDIFF(B.event_date,A.event_date) = 1 THEN @sum:=@sum+1 ELSE @sum := @sum+0 END)/c.all_count),2) as fraction
-FROM (SELECT player_id,min(event_date)as event_date FROM Activity GROUP BY player_id) A LEFT JOIN Activity B ON A.player_id=B.player_id, (SELECT @sum:=0) as R ,
-(SELECT COUNT(DISTINCT player_id)as all_count FROM Activity) C
+# 3안 (1028ms)
+SELECT ROUND(((CASE WHEN DATEDIFF(B.event_date,A.event_date) = 1 
+                    THEN @sum:=@sum+1 ELSE @sum := @sum+0 END)/c.all_count),2) as fraction
+FROM (SELECT player_id,min(event_date) as event_date 
+      FROM Activity 
+      GROUP BY player_id) A 
+LEFT JOIN Activity B ON A.player_id=B.player_id
+JOIN (SELECT @sum:=0) as R
+JOIN (SELECT COUNT(DISTINCT player_id)as all_count FROM Activity) C
 ORDER BY fraction DESC
 LIMIT 1
